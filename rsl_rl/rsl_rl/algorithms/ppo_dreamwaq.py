@@ -141,7 +141,10 @@ class PPO_DreamWaQ:
         for obs_batch, critic_obs_batch,  obs_hist_batch,estimation_batch, actions_batch, target_values_batch, advantages_batch, returns_batch, old_actions_log_prob_batch, \
             old_mu_batch, old_sigma_batch, live_batch,hid_states_batch, masks_batch in generator:
 
-                self.actor_critic.act(obs_batch, obs_hist_batch, masks=masks_batch, hidden_states=hid_states_batch[0])
+                with torch.no_grad():
+                    code = self.actor_critic.vae.encode_only(obs_hist_batch)
+                    obs_with_code = torch.cat((code, obs_batch), dim=-1)
+                self.actor_critic.update_distribution(obs_with_code)
                 actions_log_prob_batch = self.actor_critic.get_actions_log_prob(actions_batch)
                 value_batch = self.actor_critic.evaluate(critic_obs_batch, masks=masks_batch, hidden_states=hid_states_batch[1])
                 mu_batch = self.actor_critic.action_mean

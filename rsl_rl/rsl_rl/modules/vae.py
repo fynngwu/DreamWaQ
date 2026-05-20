@@ -46,6 +46,18 @@ class VAE(nn.Module):
         code_temp = torch.randn_like(var)
         return mean + var*code_temp
     
+    def encode_only(self, obs_history):
+        with torch.no_grad():
+            encoded = self.encoder(obs_history)
+            mean_latent = self.encode_mean_latent(encoded)
+            logvar_latent = self.encode_logvar_latent(encoded)
+            mean_vel = self.encode_mean_vel(encoded)
+            logvar_vel = self.encode_logvar_vel(encoded)
+            code_latent = self.reparameterise(mean_latent, logvar_latent)
+            code_vel = self.reparameterise(mean_vel, logvar_vel)
+            code = torch.cat((code_vel, code_latent), dim=-1)
+        return code
+
     def cenet_forward(self,obs_history):
         encoded = self.encoder(obs_history)
         mean_latent = self.encode_mean_latent(encoded)

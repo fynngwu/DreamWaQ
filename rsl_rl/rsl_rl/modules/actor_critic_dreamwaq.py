@@ -117,7 +117,7 @@ class ActorCriticDreamWaQ(nn.Module):
         self.distribution = Normal(mean, mean * 0.0 + self.std)
 
     def act(self, observations, obs_history, **kwargs):
-        code,_,_,_= self.vae.cenet_forward(obs_history)
+        code = self.vae.encode_only(obs_history)
         observations = torch.cat((code,observations),dim=-1)
         self.update_distribution(observations)
         return self.distribution.sample()

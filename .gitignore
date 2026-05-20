@@ -1,0 +1,10 @@
+**/*.pyc
+**/*.so
+**/__pycache__/
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+DreamWaQ_wrong/
+logs
