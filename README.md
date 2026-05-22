@@ -7,7 +7,7 @@ Dynamic Robust Adaptive Model-based Whole-body Quadrupedal locomotion — an RL 
 ### 1. Clone
 
 ```bash
-git clone git@github.com:fynngwu/DreamWaQ.git
+git clone https://github.com/fynngwu/DreamWaQ.git
 cd DreamWaQ
 git submodule update --init --recursive
 ```

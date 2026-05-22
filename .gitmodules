@@ -1,9 +1,9 @@
 [submodule "resources/robots/dog_v2_description"]
 	path = resources/robots/dog_v2_description
-	url = git@github.com:fynngwu/dog_v2_description.git
+	url = https://github.com/fynngwu/dog_v2_description.git
 [submodule "dogv2_mujoco"]
 	path = dogv2_mujoco
-	url = git@github.com:fynngwu/dogv2_mujoco.git
+	url = https://github.com/fynngwu/dogv2_mujoco.git
 [submodule "rl_sar-ARES"]
 	path = rl_sar-ARES
-	url = git@github.com:fynngwu/rl_sar-ARES.git
+	url = https://github.com/fynngwu/rl_sar-ARES.git
