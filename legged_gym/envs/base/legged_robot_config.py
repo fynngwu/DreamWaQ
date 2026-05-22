@@ -47,7 +47,7 @@ class LeggedRobotCfg(BaseConfig):
         class ranges:
             lin_vel_x = [-1.0,1.2] # min max [m/s]
             lin_vel_y = [-0.6,0.6]   # min max [m/s]
-            ang_vel_yaw = [-1, 1]    # min max [rad/s]
+            ang_vel_yaw = [-2, 2]    # min max [rad/s]
             heading = [-3.14, 3.14]
 
     class init_state:
@@ -73,7 +73,7 @@ class LeggedRobotCfg(BaseConfig):
     class control:
         # PD Drive parameters:
         control_type = 'P'
-        stiffness = {'joint': 15.}
+        stiffness = {'joint': 20.}
         damping = {'joint': 1.}
         action_scale = 0.25
         decimation = 4
@@ -102,25 +102,25 @@ class LeggedRobotCfg(BaseConfig):
 
     class domain_rand:
         randomize_friction = True
-        friction_range = [0.2, 1.25]
+        friction_range = [0.2, 1.55]
         randomize_restitution = True
         restitution_range = [0.0,1.0]
         push_robots = True
-        push_interval_s = 10
+        push_interval_s = 9
         max_push_vel_xy = 1.0
         max_push_ang_vel = 0.6
         randomize_base_mass = True
-        added_base_mass_range = [-1., 2.]
+        added_base_mass_range = [-2., 4.]
         randomize_link_mass = True
-        multiplied_link_mass_range = [0.9, 1.1]
+        multiplied_link_mass_range = [0.8, 1.2]
         randomize_base_com = True
-        added_base_com_range = [-0.05, 0.05]
+        added_base_com_range = [-0.08, 0.05]
         randomize_pd_gains = True
-        stiffness_multiplier_range = [0.85, 1.15]
-        damping_multiplier_range = [0.85, 1.15]
+        stiffness_multiplier_range = [0.5, 1.5]
+        damping_multiplier_range = [0.5, 1.5]
         torque_multiplier_range = [0.85, 1.15]
         randomize_motor_zero_offset = True
-        motor_zero_offset_range = [-0.035, 0.035] # Offset to add to the motor angles
+        motor_zero_offset_range = [-0.135, 0.135] # Offset to add to the motor angles
 
         add_cmd_action_latency = True
         randomize_cmd_action_latency = True
@@ -128,28 +128,32 @@ class LeggedRobotCfg(BaseConfig):
 
     class rewards:
         class scales:
-            termination = -0.8 # 25/8/23 zsy说不用加
+            termination = -0.0 # 25/8/23 zsy说不用加
             tracking_lin_vel = 3.0 # 惩罚当前机器人在X、Y方向速度与命令不一致
             tracking_ang_vel = 1.5 # 惩罚当前机器人在角度转向速度与命令不一致
             lin_vel_z = -2 # 惩罚机器人在Z轴上的速度 对应现象为机器人上下起伏很大
             ang_vel_xy = -0.05 # 惩罚机器人在X轴和Y轴上的角速度 对应现象为遏制机器人左右晃动和前后晃动
             orientation = -0.0 # 强烈鼓励机器人与初始姿态的基座方向一致
-            base_height=-.0
+            base_height=-10.0 # 惩罚机器人在Z轴上的高度 对应现象为机器人在地面上
             torques = -0.0002#
             dof_vel = -0.
-            dof_acc = -1e-7
+            dof_acc = -2.5e-7
             collision = -1.
             action_rate = -0.01
             stand_still = -0.5
             dof_pos_limits = -5.0
-            hip_default = -0.1
+            hip_default = -0.5
+            standup = -0.25
             run_still=-0.05
+            feet_air_time = 1.0
+            turn_contact_number = -0.5
+            turn_small_steps = 0
         only_positive_rewards = True # if true negative total rewards are clipped at zero (avoids early termination problems)
         tracking_sigma = 0.25 # tracking reward = exp(-error^2/sigma)
         soft_dof_pos_limit = 0.9 # percentage of urdf limits, values above this limit are penalized
         soft_dof_vel_limit = 0.9
         soft_torque_limit = 0.9
-        base_height_target = 0.52
+        base_height_target = 0.38
         max_contact_force = 100. # forces above this value are penalized
 
     class normalization:
@@ -212,7 +216,7 @@ class LeggedRobotCfgPPO(BaseConfig):
         use_clipped_value_loss = True
         clip_param = 0.2
         entropy_coef = 0.01
-        num_learning_epochs = 5
+        num_learning_epochs = 4
         num_mini_batches = 6 # mini batch size = num_envs*nsteps / nminibatches
         learning_rate = 1.e-3
         schedule = 'adaptive' # could be adaptive, fixed
@@ -225,7 +229,7 @@ class LeggedRobotCfgPPO(BaseConfig):
         policy_class_name = "ActorCriticDreamWaQ"
         algorithm_class_name = "PPO_DreamWaQ"
         num_steps_per_env = 24
-        max_iterations = 3000
+        max_iterations = 10000
         save_interval = 100
         experiment_name = 'dog_v2'
         run_name = ''
