@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import shutil
+import stat
 import inspect
 from datetime import datetime
 import sys
@@ -60,6 +61,9 @@ def save_run_config(task_name, env_cfg, train_cfg, log_dir):
         f.write(str(class_to_dict(env_cfg)))
         f.write("\n\n=== Train Config ===\n")
         f.write(str(class_to_dict(train_cfg)))
+
+    for f in os.listdir(config_dir):
+        os.chmod(os.path.join(config_dir, f), stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
 
     print(f"Config snapshot saved to: {config_dir}")
 
