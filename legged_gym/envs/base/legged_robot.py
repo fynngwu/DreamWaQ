@@ -143,6 +143,29 @@ class LeggedRobot(BaseTask):
             self.extras["episode"]["terrain_level"] = torch.mean(self.terrain_levels.float())
         if self.cfg.commands.curriculum:
             self.extras["episode"]["max_command_x"] = self.command_ranges["lin_vel_x"][1]
+        if hasattr(self, 'curricula') and len(self.curricula) > 0:
+            self.extras["episode"]["min_command_x_vel"] = torch.min(self.commands[:, 0])
+            self.extras["episode"]["max_command_x_vel"] = torch.max(self.commands[:, 0])
+            self.extras["episode"]["min_command_y_vel"] = torch.min(self.commands[:, 1])
+            self.extras["episode"]["max_command_y_vel"] = torch.max(self.commands[:, 1])
+            self.extras["episode"]["min_command_yaw_vel"] = torch.min(self.commands[:, 2])
+            self.extras["episode"]["max_command_yaw_vel"] = torch.max(self.commands[:, 2])
+            self.extras["episode"]["min_command_freq"] = torch.min(self.commands[:, 4])
+            self.extras["episode"]["max_command_freq"] = torch.max(self.commands[:, 4])
+            self.extras["episode"]["min_command_phase"] = torch.min(self.commands[:, 5])
+            self.extras["episode"]["max_command_phase"] = torch.max(self.commands[:, 5])
+            self.extras["episode"]["min_command_offset"] = torch.min(self.commands[:, 6])
+            self.extras["episode"]["max_command_offset"] = torch.max(self.commands[:, 6])
+            self.extras["episode"]["min_command_bound"] = torch.min(self.commands[:, 7])
+            self.extras["episode"]["max_command_bound"] = torch.max(self.commands[:, 7])
+            self.extras["episode"]["min_command_duration"] = torch.min(self.commands[:, 8])
+            self.extras["episode"]["max_command_duration"] = torch.max(self.commands[:, 8])
+            if self.cfg.commands.num_commands > 9:
+                self.extras["episode"]["min_command_swing_height"] = torch.min(self.commands[:, 9])
+                self.extras["episode"]["max_command_swing_height"] = torch.max(self.commands[:, 9])
+            for curriculum, category in zip(self.curricula, self.category_names):
+                self.extras["episode"][f"command_area_{category}"] = np.sum(curriculum.weights) / \
+                                                                     curriculum.weights.shape[0]
         if self.cfg.env.send_timeouts:
             self.extras["time_outs"] = self.time_out_buf
         self.base_quat[env_ids] = self.root_states[env_ids, 3:7]
