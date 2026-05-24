@@ -29,7 +29,7 @@ class LeggedRobotCfg(BaseConfig):
         measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5]
         selected = False # select a unique terrain type and pass all arguments
         terrain_kwargs = None # Dict of arguments for selected terrain
-        max_init_terrain_level = 5 # starting curriculum state
+        max_init_terrain_level = 2 # starting curriculum state
         terrain_length = 8.
         terrain_width = 8.
         num_rows= 10 # number of terrain rows (levels)
@@ -133,8 +133,8 @@ class LeggedRobotCfg(BaseConfig):
     class control:
         # PD Drive parameters:
         control_type = 'P'
-        stiffness = {'joint': 25.}
-        damping = {'joint': 1.}
+        stiffness = {'joint': 28.}
+        damping = {'joint': 0.7}
         action_scale = 0.25
         decimation = 4
 
@@ -162,7 +162,7 @@ class LeggedRobotCfg(BaseConfig):
 
     class domain_rand:
         randomize_friction = True
-        friction_range = [0.2, 1.55]
+        friction_range = [0.5, 2.0]
         randomize_restitution = True
         restitution_range = [0.0,1.0]
         push_robots = True
@@ -188,39 +188,12 @@ class LeggedRobotCfg(BaseConfig):
 
     class rewards:
         class scales:
-            termination = -0.0
-            tracking_lin_vel = 1.0
-            tracking_ang_vel = 0.5
-            lin_vel_z = -2.0
-            ang_vel_xy = -0.05
-            orientation = -0.0
             torques = -0.00001
-            dof_vel = -0.0
             dof_acc = -2.5e-7
             base_height = -0.0
-            feet_air_time = 1.0
+            feet_air_time = 0.0
             collision = -1.0
             action_rate = -0.01
-            stand_still = -0.0
-            tracking_lin_vel_lat = 0.0
-            tracking_lin_vel_long = 0.0
-            tracking_contacts = 0.0
-            tracking_contacts_shaped = 0.0
-            tracking_contacts_shaped_force = 0.0
-            tracking_contacts_shaped_vel = 0.0
-            jump = 0.0
-            energy = 0.0
-            energy_expenditure = 0.0
-            survival = 0.0
-            dof_pos_limits = 0.0
-            feet_contact_forces = 0.0
-            feet_slip = 0.0
-            feet_clearance_cmd_linear = 0.0
-            dof_pos = 0.0
-            action_smoothness_1 = 0.0
-            action_smoothness_2 = 0.0
-            feet_impact_vel = 0.0
-            raibert_heuristic = 0.0
             standup = -0.25
 
         only_positive_rewards = True
@@ -230,12 +203,12 @@ class LeggedRobotCfg(BaseConfig):
         soft_dof_pos_limit = 0.9 # percentage of urdf limits, values above this limit are penalized
         soft_dof_vel_limit = 0.9
         soft_torque_limit = 0.9
-        base_height_target = 0.38
-        max_contact_force = 100. # forces above this value are penalized
-        # gait-shaped rewards 参数
-        kappa_gait_probs = 0.07  # von Mises 分布平滑系数
-        gait_force_sigma = 100.  # 步态接触力高斯核宽度
-        gait_vel_sigma = 10.     # 步态足端速度高斯核宽度
+        base_height_target = 0.3
+        max_contact_force = 100.
+        kappa_gait_probs = 0.07
+        gait_force_sigma = 100.
+        gait_vel_sigma = 1.
+        
 
     class normalization:
         class obs_scales:
@@ -296,7 +269,8 @@ class LeggedRobotCfgPPO(BaseConfig):
     seed = 1
     runner_class_name = 'DreamWaQRunner'
     class policy:
-        init_noise_std = 1.0
+        init_noise_std = 0.5
+        noise_std_max = 1.0
         actor_hidden_dims = [512, 256, 128]
         critic_hidden_dims = [512, 256, 128]
         activation = 'elu' # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid

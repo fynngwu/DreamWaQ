@@ -41,6 +41,7 @@ class ActorCriticDreamWaQ(nn.Module):
                 actor_hidden_dims=[256, 256, 256],
                 critic_hidden_dims=[256, 256, 256],
                     init_noise_std=1.0,
+                    noise_std_max=0.5,
                     **kwargs):
         if kwargs:
             print("ActorCriticDreamWaQ.__init__ got unexpected arguments, which will be ignored: " + str([key for key in kwargs.keys()]))
@@ -84,6 +85,7 @@ class ActorCriticDreamWaQ(nn.Module):
         print(f"Actor MLP: {self.actor}")
         print(f"Critic MLP: {self.critic}")
         self.std = nn.Parameter(init_noise_std * torch.ones(num_actions))
+        self.noise_std_max = noise_std_max
         self.distribution = None
         # disable args validation for speedup
         Normal.set_default_validate_args = False

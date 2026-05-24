@@ -190,6 +190,7 @@ class PPO_DreamWaQ:
                 nn.utils.clip_grad_norm_(
                 self.rl_parameters, self.max_grad_norm)
                 self.optimizer.step()
+                self.actor_critic.std.data = self.actor_critic.std.data.clamp(max=self.actor_critic.noise_std_max)
 
                 vel_target = estimation_batch
                 decode_target = critic_obs_batch[:,-self.num_obs:]
@@ -198,7 +199,8 @@ class PPO_DreamWaQ:
                 (code),(code_vel,code_latent),(decode),(mean_vel,logvar_vel,mean_latent,logvar_latent) = self.actor_critic.vae.cenet_forward(obs_hist_batch)
 
                 vel_estimation_loss=nn.MSELoss()(code_vel*live_batch,vel_target*live_batch) 
-                recon_loss= nn.MSELoss()(decode*live_batch,decode_target*live_batch)
+                # Only reconstruct DOF-related content: dof_err(12) + dof_vel(12)
+                recon_loss= nn.MSELoss()(decode[:, 23:47]*live_batch,decode_target[:, 23:47]*live_batch)
                 kl_loss= -0.5 *  torch.mean(torch.sum(1 + logvar_latent - mean_latent.pow(2) - logvar_latent.exp(), dim=-1)* live_batch)
                 vae_loss=vel_estimation_loss+recon_loss+self.bata*kl_loss
                 self.vae_optimizer.zero_grad()

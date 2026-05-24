@@ -44,18 +44,23 @@
 - **curriculum_thresholds** — 判定"成功"的奖励阈值，使用四个指标 AND 组合
 
 ### 奖励系统 (Rewards)
-- **ji22 风格正奖励处理** — `total = pos * exp(neg / sigma_rew_neg)`，用指数衰减柔和处理负奖励
+- **only_positive_rewards** — 总奖励 clip 到非负值（默认方式，`total = max(sum(rewards), 0)`）
+- **ji22 风格正奖励处理** — `total = pos * exp(neg / sigma_rew_neg)`，用指数衰减柔和处理负奖励（当前未使用）
 - **gait-shaped rewards** — 依赖于期望接触状态的奖励项（tracking_contacts_shaped_force/vel）
 - **tracking_sigma** — 速度跟踪奖励的指数衰减系数（默认 0.25）
 
 ### 观测系统 (Observations)
 - **obs_buf** — 策略观测张量，形状 `[num_envs, num_observations]`
-- **privileged_obs_buf** — 特权观测张量（训练时使用，推理时不使用）
-- **num_observations** — 观测维度，由各 flag 动态决定
+- **privileged_obs_buf** — 特权观测张量，形状 `[num_envs, num_privileged_obs]`，包含 `[base_lin_vel(3), heights(187), obs_buf(75)]`
+- **num_observations** — 观测维度（当前 75），必须与 obs_buf 实际拼接维度严格一致
+- **num_privileged_obs** — 特权观测维度（当前 265），等于 3 + 187 + num_observations
+- **num_history_obs** — 历史观测维度，等于 `num_obs_hist * num_observations`（当前 375）
 - **observe_gait_commands** — 是否将完整 14 维命令加入观测
-- **observe_clock_inputs** — 是否将 12 维时钟信号加入观测
+- **observe_clock_inputs** — 是否将时钟信号加入观测（当前仅 4 维 sin(2π·idx)）
 
 ### DreamWaQ 特定架构
 - **VAE (CENet)** — 条件编码网络，从观测历史中提取隐变量，包含速度估计和潜在编码分支
 - **num_decode_dims** — VAE 解码器输出维度，等于 `num_observations`
+- **recon_loss 目标** — `decode_target = critic_obs[:, -num_obs:]`，即 privileged_obs 的最后 num_obs 维（obs_buf 全部 75 维），但 MSE 只计算在 DOF 切片 `[23:47]`（dof_err 12 + dof_vel 12 = 24 维）上，不重建命令、时钟信号等其他内容
+- **obs_hist_buf** — VAE 编码器输入，形状 `[num_envs, num_history_obs]`，通过 FIFO 滑动窗口维护
 - **ActorCriticDreamWaQ** — 策略-价值网络，actor 输入为 `[code(vel+latent), observation]`

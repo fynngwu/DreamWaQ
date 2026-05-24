@@ -147,22 +147,17 @@ class LeggedRobot(BaseTask):
         self.base_ang_vel[env_ids] = quat_rotate_inverse(self.base_quat[env_ids], self.root_states[env_ids, 10:13])
 
     def compute_reward(self):
+        self.update_reward_curriculum()
         self.rew_buf[:] = 0.
-        self.rew_buf_pos[:] = 0.
-        self.rew_buf_neg[:] = 0.
         for i in range(len(self.reward_functions)):
             name = self.reward_names[i]
-            rew = self.reward_functions[i]() * self.reward_scales[name]
+            rew = self.reward_functions[i]() * self.reward_scales.get(name, 0.0)
+            if name in self.reward_curriculum_scales:
+                rew *= self.reward_curriculum_scales[name]
             self.rew_buf += rew
-            if torch.sum(rew) >= 0:
-                self.rew_buf_pos += rew
-            elif torch.sum(rew) <= 0:
-                self.rew_buf_neg += rew
             self.episode_sums[name] += rew
         if self.cfg.rewards.only_positive_rewards:
             self.rew_buf[:] = torch.clip(self.rew_buf[:], min=0.)
-        elif self.cfg.rewards.only_positive_rewards_ji22_style:
-            self.rew_buf[:] = self.rew_buf_pos[:] * torch.exp(self.rew_buf_neg[:] / self.cfg.rewards.sigma_rew_neg)
         self.episode_sums["total"] += self.rew_buf
         if "termination" in self.reward_scales:
             rew = self._reward_termination() * self.reward_scales["termination"]
@@ -617,6 +612,31 @@ class LeggedRobot(BaseTask):
         self.episode_sums = {name: torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
                              for name in self.reward_scales.keys()}
         self.episode_sums["total"] = torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
+        self.reward_curriculum_scales = {}
+        self.reward_curriculum_configs = []
+        if hasattr(self.cfg.rewards, "curriculum_rewards") and self.cfg.rewards.curriculum_rewards is not None:
+            self.reward_curriculum_configs = self.cfg.rewards.curriculum_rewards
+            for config in self.reward_curriculum_configs:
+                self.reward_curriculum_scales[config['reward_name']] = config['start_value']
+        self.num_steps_per_env = 24
+
+    def get_current_scale(self, config):
+        current_iter = self.common_step_counter // self.num_steps_per_env
+        cfg_start_iter = config['start_iter']
+        cfg_end_iter = config['end_iter']
+        cfg_start_val = config['start_value']
+        cfg_end_val = config['end_value']
+        percentage = (current_iter - cfg_start_iter) / (cfg_end_iter - cfg_start_iter)
+        percentage = max(0.0, min(1.0, percentage))
+        return cfg_start_val + (cfg_end_val - cfg_start_val) * percentage
+
+    def update_reward_curriculum(self, force_update: bool = False):
+        if self.reward_curriculum_configs:
+            if self.common_step_counter % self.num_steps_per_env == 0 or force_update:
+                for config in self.reward_curriculum_configs:
+                    current_scale = self.get_current_scale(config)
+                    reward_name = config['reward_name']
+                    self.reward_curriculum_scales[reward_name] = current_scale
 
     def _create_ground_plane(self):
         plane_params = gymapi.PlaneParams()
