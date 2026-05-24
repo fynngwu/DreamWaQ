@@ -12,8 +12,8 @@ class DogV2Cfg_GaitConditioned(LeggedRobotCfg):
         observe_gait_commands = True
         observe_clock_inputs = True
         observe_two_prev_actions = True
-        num_observations = 76
-        num_privileged_obs = 266
+        num_observations = 75
+        num_privileged_obs = 265
         num_obs_hist = 5
         num_history_obs = num_obs_hist * num_observations
 
@@ -108,7 +108,7 @@ class DogV2Cfg_GaitConditioned(LeggedRobotCfg):
 
 class DogV2PPO_GaitConditioned(LeggedRobotCfgPPO):
     class algorithm(LeggedRobotCfgPPO.algorithm):
-        num_obs = 76
+        num_obs = 75
 
     class runner(LeggedRobotCfgPPO.runner):
         experiment_name = 'dog_v2_gait_conditioned'

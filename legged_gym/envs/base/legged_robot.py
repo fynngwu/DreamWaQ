@@ -179,7 +179,6 @@ class LeggedRobot(BaseTask):
                                   self.base_ang_vel * self.obs_scales.ang_vel,
                                   self.projected_gravity,
                                   self.commands * self.commands_scale,
-                                  self.heading_command.unsqueeze(1) * self.obs_scales.ang_vel,
                                   self.dof_err * self.obs_scales.dof_pos,
                                   self.dof_vel * self.obs_scales.dof_vel,
                                   self.actions,
@@ -489,16 +488,15 @@ class LeggedRobot(BaseTask):
         n = self.num_actions
 
         noise_vec = torch.cat((torch.ones(3) * noise_scales.lin_vel * noise_level * self.obs_scales.lin_vel,
-                                torch.ones(3) * noise_scales.ang_vel * noise_level * self.obs_scales.ang_vel,
-                                torch.ones(3) * noise_scales.gravity * noise_level,
-                                torch.zeros(self.cfg.commands.num_commands),
-                                torch.zeros(1),
-                                torch.ones(n) * noise_scales.dof_pos * noise_level * self.obs_scales.dof_pos,
-                                torch.ones(n) * noise_scales.dof_vel * noise_level * self.obs_scales.dof_vel,
-                                torch.zeros(n),
-                                torch.zeros(n),
-                                torch.zeros(4),
-                                ), dim=0)
+                                 torch.ones(3) * noise_scales.ang_vel * noise_level * self.obs_scales.ang_vel,
+                                 torch.ones(3) * noise_scales.gravity * noise_level,
+                                 torch.zeros(self.cfg.commands.num_commands),
+                                 torch.ones(n) * noise_scales.dof_pos * noise_level * self.obs_scales.dof_pos,
+                                 torch.ones(n) * noise_scales.dof_vel * noise_level * self.obs_scales.dof_vel,
+                                 torch.zeros(n),
+                                 torch.zeros(n),
+                                 torch.zeros(4),
+                                 ), dim=0)
 
         return noise_vec.to(self.device)
 
