@@ -133,7 +133,7 @@ class LeggedRobotCfg(BaseConfig):
     class control:
         # PD Drive parameters:
         control_type = 'P'
-        stiffness = {'joint': 20.}
+        stiffness = {'joint': 25.}
         damping = {'joint': 1.}
         action_scale = 0.25
         decimation = 4
@@ -188,31 +188,45 @@ class LeggedRobotCfg(BaseConfig):
 
     class rewards:
         class scales:
-            termination = -0.0 # 25/8/23 zsy说不用加
-            tracking_lin_vel = 3.0 # 惩罚当前机器人在X、Y方向速度与命令不一致
-            tracking_ang_vel = 1.5 # 惩罚当前机器人在角度转向速度与命令不一致
-            lin_vel_z = -2 # 惩罚机器人在Z轴上的速度 对应现象为机器人上下起伏很大
-            ang_vel_xy = -0.05 # 惩罚机器人在X轴和Y轴上的角速度 对应现象为遏制机器人左右晃动和前后晃动
-            orientation = -0.0 # 强烈鼓励机器人与初始姿态的基座方向一致
-            base_height=-10.0 # 惩罚机器人在Z轴上的高度 对应现象为机器人在地面上
-            torques = -0.0002#
-            dof_vel = -0.
+            termination = -0.0
+            tracking_lin_vel = 1.0
+            tracking_ang_vel = 0.5
+            lin_vel_z = -2.0
+            ang_vel_xy = -0.05
+            orientation = -0.0
+            torques = -0.00001
+            dof_vel = -0.0
             dof_acc = -2.5e-7
-            collision = -1.
-            action_rate = -0.01
-            stand_still = -0.5
-            dof_pos_limits = -5.0
-            hip_default = -0.5
-            standup = -0.25
-            run_still=-0.05
+            base_height = -0.0
             feet_air_time = 1.0
-            turn_contact_number = -0.5
-            turn_small_steps = 0
+            collision = -1.0
+            action_rate = -0.01
+            stand_still = -0.0
+            tracking_lin_vel_lat = 0.0
+            tracking_lin_vel_long = 0.0
+            tracking_contacts = 0.0
+            tracking_contacts_shaped = 0.0
+            tracking_contacts_shaped_force = 0.0
+            tracking_contacts_shaped_vel = 0.0
+            jump = 0.0
+            energy = 0.0
+            energy_expenditure = 0.0
+            survival = 0.0
+            dof_pos_limits = 0.0
+            feet_contact_forces = 0.0
+            feet_slip = 0.0
+            feet_clearance_cmd_linear = 0.0
+            dof_pos = 0.0
+            action_smoothness_1 = 0.0
+            action_smoothness_2 = 0.0
+            feet_impact_vel = 0.0
+            raibert_heuristic = 0.0
+            standup = -0.25
 
-        only_positive_rewards = True # if true negative total rewards are clipped at zero (avoids early termination problems)
-        only_positive_rewards_ji22_style = False  # 使用 pos * exp(neg / sigma_rew_neg) 处理负奖励
-        sigma_rew_neg = 0.02  # ji22风格的负奖励衰减系数
-        tracking_sigma = 0.25 # tracking reward = exp(-error^2/sigma)
+        only_positive_rewards = True
+        only_positive_rewards_ji22_style = False
+        sigma_rew_neg = 5.0
+        tracking_sigma = 0.25
         soft_dof_pos_limit = 0.9 # percentage of urdf limits, values above this limit are penalized
         soft_dof_vel_limit = 0.9
         soft_torque_limit = 0.9
