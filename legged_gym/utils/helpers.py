@@ -103,9 +103,8 @@ def parse_sim_params(args, cfg):
 def get_load_path(root, load_run=-1, checkpoint=-1):
     try:
         runs = os.listdir(root)
-        #TODO sort by date to handle change of month
-        runs.sort()
         if 'exported' in runs: runs.remove('exported')
+        runs.sort(key=lambda d: os.path.getmtime(os.path.join(root, d)))
         last_run = os.path.join(root, runs[-1])
     except:
         raise ValueError("No runs in this directory: " + root)
@@ -311,35 +310,30 @@ class PolicyExporterDWAQ(torch.nn.Module):
         self.actor = copy.deepcopy(actor_critic.actor)
         self.vae = copy.deepcopy(actor_critic.vae)
         self.actor.eval()
-        self.vae.eval()          # 必须 eval 模式
+        self.vae.eval()
 
     def forward(self, obs_history):
-        # 与训练时完全一致
-        (code,), *_ = self.vae.cenet_forward(obs_history[:, :-57])
-        actor_input = torch.cat((code.unsqueeze(0), obs_history[:, -57:]), dim=1)
+        code, _, _, _ = self.vae.cenet_forward(obs_history)
+        actor_input = torch.cat((code, obs_history[:, -45:]), dim=1)
         actions_mean = self.actor(actor_input)
         return actions_mean
 
-    # ==========  改写为 ONNX  ==========
     def export(self, path, opset=11):
         os.makedirs(path, exist_ok=True)
         onnx_file = os.path.join(path, 'policy_dwaq.onnx')
 
-        # 1. 构造 dummy 输入（batch=1，长度与你训练时一致）
-        seq_len = 285 +57                # 请改成你真实的 obs_history 总长度
-        dummy_obs = torch.randn(1, seq_len)
+        dummy_obs = torch.randn(1, 225)
 
-        # 2. 切换到 CPU、eval、无梯度
         self.to('cpu')
         self.eval()
         with torch.no_grad():
             torch.onnx.export(
-                self,                                    # 模型
-                (dummy_obs,),                            # 输入 tuple
+                self,
+                (dummy_obs,),
                 onnx_file,
                 input_names=['obs'],
                 output_names=['actions'],
-                dynamic_axes={                           # batch 维度可变
+                dynamic_axes={
                     'obs': {0: 'batch'},
                     'actions': {0: 'batch'}
                 },
@@ -359,35 +353,30 @@ class PolicyExporterDWAQ_(torch.nn.Module):
         self.actor = copy.deepcopy(actor_critic.actor)
         self.vae = copy.deepcopy(actor_critic.vae)
         self.actor.eval()
-        self.vae.eval()          # 必须 eval 模式
+        self.vae.eval()
 
     def forward(self, obs_history):
-        # 与训练时完全一致
-        (code,), *_ = self.vae.cenet_forward(obs_history[:, :-57])
-        actor_input = torch.cat((code.unsqueeze(0), obs_history[:, -57:]), dim=1)
+        code, _, _, _ = self.vae.cenet_forward(obs_history)
+        actor_input = torch.cat((code, obs_history[:, -45:]), dim=1)
         actions_mean = self.actor(actor_input)
         return actions_mean
 
-    # ==========  改写为 ONNX  ==========
     def export(self, path, opset=11):
         os.makedirs(path, exist_ok=True)
         onnx_file = os.path.join(path, 'policy_dwaq.onnx')
 
-        # 1. 构造 dummy 输入（batch=1，长度与你训练时一致）
-        seq_len = 46*6             # 请改成你真实的 obs_history 总长度
-        dummy_obs = torch.randn(1, seq_len)
+        dummy_obs = torch.randn(1, 225)
 
-        # 2. 切换到 CPU、eval、无梯度
         self.to('cpu')
         self.eval()
         with torch.no_grad():
             torch.onnx.export(
-                self,                                    # 模型
-                (dummy_obs,),                            # 输入 tuple
+                self,
+                (dummy_obs,),
                 onnx_file,
                 input_names=['obs'],
                 output_names=['actions'],
-                dynamic_axes={                           # batch 维度可变
+                dynamic_axes={
                     'obs': {0: 'batch'},
                     'actions': {0: 'batch'}
                 },
