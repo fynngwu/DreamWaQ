@@ -41,6 +41,8 @@ from legged_gym.envs.GO2_Stand.GO2_Handstand.Go2_handstand import Go2_stand
 
 from legged_gym.envs.dog_v2.dog_v2_config import DogV2Cfg, DogV2PPO
 from legged_gym.envs.dog_v2.dog_v2 import DogV2Robot
+from legged_gym.envs.dog_v2.dog_v2_wall_config import DogV2WallCfg, DogV2WallCfgPPO
+from legged_gym.envs.dog_v2.dog_v2_wall_env import DogV2WallRobot
 import os
 
 from legged_gym.utils.task_registry import task_registry
@@ -49,3 +51,4 @@ task_registry.register( "go2_legstand", Go2_legstand, GO2Cfg_Leggedstand(), GO2C
 task_registry.register( "go2_handstand", Go2_stand, GO2Cfg_Handstand(), GO2CfgPPO_Handstand())
 task_registry.register( "m20", M20_Robot, M20_Cfg_Yu(), M20_PPO_Yu())
 task_registry.register( "dog_v2", DogV2Robot, DogV2Cfg(), DogV2PPO())
+task_registry.register( "dog_v2_wall", DogV2WallRobot, DogV2WallCfg(), DogV2WallCfgPPO())
